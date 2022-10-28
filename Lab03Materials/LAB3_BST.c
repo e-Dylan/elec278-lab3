@@ -1,4 +1,4 @@
-// LAB3_BST.C
+// LAB3_BST.c - Lab 03 - Dylan, Smith
 //
 // Code for ELEC278 Lab 3.  Some code has already been implemented.
 // You will develop your own code - look for the comments.
@@ -202,16 +202,6 @@ int height(Node *root)
 	}
 } // height()
 
-Node *findParentHelper(Key k, Node *root)
-// Help find parent of node with key == k. Parameter root is node with
-// at least one child (see findParent()).
-{
-	// your code goes here  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	// ---<SNIP>----
-
-	// ---<SNIP>----
-} // findparenthelper()
-
 Node *findParent(Key k, Node *root)
 //
 {
@@ -226,36 +216,54 @@ Node *findParent(Key k, Node *root)
 	if ((root->leftChild == NULL) && (root->rightChild == NULL))
 		return NULL;
 
-	// Deal with cases where root has at least one child
-	return findParentHelper(k, root);
+	// root node is parent to found node
+	if (root->leftChild != NULL && root->leftChild->key == k || root->rightChild != NULL && root->rightChild->key == k)
+		return root;
+
+	// Recursively search through nodes of the tree
+	if (root->key > k)
+		return findParent(k, root->leftChild);
+
+	if (root->key < k)
+		return findParent(k, root->rightChild);
 } // findParent()
 
-void delete (Node *p, Node *n)
-// Delete node pointed to by n.
-// Parameters:
-//	n	- points to node to be deleted
-//	p	- points to parent of node to be deleted.
+int inOrderSuccessor(Node *root)
 {
-	// Deletion has 3 cases - no subtrees, only left or right subtree, or both
-	// left and right subtrees.
-	Node *deleteNode = n; // Save copy of pointer to node to delete.
-
-	if (n->leftChild != NULL)
-	{ // there is left child
-
-		// your code goes here  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	int min = root->key;
+	while (root->leftChild != NULL)
+	{
+		min = root->leftChild->key;
+		root = root->leftChild;
 	}
-	else if (n->rightChild)
-	{ // there is a right child
+	return min;
+}
 
-		// your code goes here  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Node *delete (Key k, Node *root)
+{
+	if (k < root->key)
+	{
+		root->leftChild = delete (k, root->leftChild);
+	}
+	else if (k > root->key)
+	{
+		root->rightChild = delete (k, root->rightChild);
 	}
 	else
-	{ // no children
+	{
+		if (root->leftChild == NULL)
+		{
+			return root->rightChild;
+		}
+		else if (root->rightChild == NULL)
+		{
+			return root->leftChild;
+		}
 
-		// your code goes here  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		root->key = inOrderSuccessor(root->rightChild);
+		root->rightChild = delete (root->key, root->rightChild);
 	}
-
+	return root;
 } // delete()
 
 int withdraw(Key k, Node *root, Node *n)
@@ -263,18 +271,15 @@ int withdraw(Key k, Node *root, Node *n)
 //	return a copy of the node with key k (and value v)
 //	Delete the node with key k from the tree while ensuring the tree remains valid
 {
-	Node *p, *m;
-	m = find(k, root);
-
-	if (m != NULL)
+	if (root != NULL)
 	{
-		// create a copy of the node with the same key and value
-		n = initNode(m->key, m->value);
-		p = findParent(k, root);
-		// can delete the node
-		delete (p, m);
+
+		n = delete (k, root);
 		return 1;
 	}
+	else
+	{
 
-	return 0;
+		return 0;
+	}
 } // withdraw()
