@@ -134,17 +134,78 @@ int isValid(Node *root)
 	if (root == NULL)
 		return 1;
 
-	if (root->leftChild != NULL && root->leftChild->pkey > root->pkey)
+	if (root->leftChild != NULL && atoi(root->leftChild->pkey) > atoi(root->pkey))
+	{
 		return 0;
-
-	if (root->rightChild != NULL && root->rightChild->pkey < root->pkey)
+	}
+	if (root->rightChild != NULL && atoi(root->rightChild->pkey) < atoi(root->pkey))
+	{
 		return 0;
+	}
 
 	if (!isValid(root->leftChild) || !isValid(root->rightChild))
+	{
 		return 0;
-
+	}
 	// BST is valid
 	return 1;
+}
+
+Node *find(char *k, Node *root)
+// Function locates node with key value equal to parameter k. Parameter
+// root holds pointer to root node of tree. Function returns immediately
+// if either root pointer is null, or the node that root points to has
+// key value sought.  If neither of those conditions is true, then the
+// function calls itself with a pointer to either the left or right
+// subtree.
+{
+	// termination conditions - either true, search is ended
+	if ((root == NULL) || (root->pkey == k))
+		return root;
+	// search continues.  Since this is a search tree, we know that
+	// every key in the right subtree is bigger than the key in the tree's
+	// root, and every key in the left subtree is smaller than the key in
+	// the tree's root.  That allows us to choose the appropriate subtree
+	// to search.
+	if (k > root->pkey)
+		// Key value sought is larger than current node key, so search right
+		// subtree
+		return find(k, root->rightChild);
+	else
+		// Key value sought is smaller than current node key (the equal case
+		// was handled as a termination condition in the first line), so
+		// search left subtree
+		return find(k, root->leftChild);
+} // find()
+
+void print2DUtil(Node *root, int space)
+{
+	// Base case
+	if (root == NULL)
+		return;
+
+	// Increase distance between levels
+	space += 10;
+
+	// Process right child first
+	print2DUtil(root->rightChild, space);
+
+	// Print current node after space
+	// count
+	printf("\n");
+	for (int i = 10; i < space; i++)
+		printf(" ");
+	printf("%s\n", root->pkey);
+
+	// Process left child
+	print2DUtil(root->leftChild, space);
+}
+
+// Wrapper over print2DUtil()
+void print2D(Node *root)
+{
+	// Pass initial space count as 0
+	print2DUtil(root, 0);
 }
 
 int main(void)
@@ -194,12 +255,44 @@ int main(void)
 	}
 	printf("BST NODES: %d", num_nodes);
 
+	// printf("\n%d\n", t.root->rightChild->pkey);
+	// print2D(t.root);
 	// This returns a warning for incompatible pointer type, not sure why.
 	// don't have time to debug.
-	if (!isValid(&t.root))
+	if (!isValid(t.root))
 	{
 		return 0;
 	}
+
+	// Open to-delete node IDs file
+	fp = fopen("DELETES_SMALL.txt", "r");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "ERROR: Cannot open data file\n");
+		return -1;
+	}
+
+	// Loop over every id in the DELETES file
+	for (;;)
+	{
+		// Extract each line
+		p = fgets(pbuff, 256, fp);
+		// If no more lines, break loop we're done.
+		if (p == NULL)
+			break;
+
+		// find node in tree with the delete id
+		printf("\n%s", p);
+		Node *toDelete = find(p, t.root);
+		if (toDelete != NULL)
+		{
+			printf("\n\nfound node\n\n");
+			DeleteNode(toDelete);
+			num_nodes--;
+		}
+	}
+	printf("\nNODES AFTER DELETES: %d", num_nodes);
+
 	// Close file when done reading
 	fclose(fp);
 }
